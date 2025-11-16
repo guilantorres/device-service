@@ -5,6 +5,7 @@ import com.github.guilantorres.device.dto.DeviceResponseDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.model.DeviceState;
 import com.github.guilantorres.device.service.DeviceService;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class DeviceController {
 
   @PostMapping
   public ResponseEntity<DeviceResponseDTO> createDevice(
-      @RequestBody CreateDeviceRequestDTO request) {
+      @Valid @RequestBody CreateDeviceRequestDTO request) {
     DeviceResponseDTO response = deviceService.createDevice(request);
 
     URI location = ServletUriComponentsBuilder
@@ -61,7 +62,7 @@ public class DeviceController {
 
   @PutMapping("/{id}")
   public ResponseEntity<DeviceResponseDTO> updateDevice(@PathVariable String id,
-      @RequestBody UpdateDeviceRequestDTO request) {
+      @Valid @RequestBody UpdateDeviceRequestDTO request) {
     DeviceResponseDTO response = deviceService.updateDevice(id, request);
     return ResponseEntity.ok(response);
   }
