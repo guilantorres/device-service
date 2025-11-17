@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,11 +62,9 @@ public class DeviceServiceImplTests {
 
   @Test
   public void getDeviceById_WhenDeviceNotFound_ShouldThrowException() {
-    String deviceId = "abcdef";
-
-    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.empty());
+    when(deviceMongoRepository.findById("deviceId")).thenReturn(Optional.empty());
     assertThrows(DeviceNotFoundException.class, () -> {
-      deviceService.getDeviceById(deviceId);
+      deviceService.getDeviceById("deviceId");
     });
   }
 
@@ -121,6 +120,32 @@ public class DeviceServiceImplTests {
   }
 
   @Test
+  public void updateDevice_WhenDeviceNotFound_ShouldThrowException() {
+    when(deviceMongoRepository.findById("deviceId")).thenReturn(Optional.empty());
+    assertThrows(DeviceNotFoundException.class, () -> {
+      deviceService.getDeviceById("deviceId");
+    });
+  }
+
+  @Test
+  public void deleteDevice_WhenDeviceAvailable_ShouldSucceed() {
+    String deviceId = "abcdef";
+    Device device = new Device(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.AVAILABLE,
+        Instant.now()
+    );
+
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(device));
+
+    deviceService.deleteDevice(deviceId);
+
+    verify(deviceMongoRepository, times(1)).deleteById(deviceId);
+  }
+
+  @Test
   public void deleteDevice_WhenDeviceInUse_ShouldThrowException() {
     String deviceId = "abcdef";
     Device deviceInUse = new Device(deviceId, "W580", "Sony Ericsson", DeviceState.IN_USE,
@@ -132,5 +157,13 @@ public class DeviceServiceImplTests {
     });
 
     verify(deviceMongoRepository, never()).deleteById(deviceId);
+  }
+
+  @Test
+  public void deleteDevice_WhenDeviceNotFound_ShouldThrowException() {
+    when(deviceMongoRepository.findById("deviceId")).thenReturn(Optional.empty());
+    assertThrows(DeviceNotFoundException.class, () -> {
+      deviceService.getDeviceById("deviceId");
+    });
   }
 }
