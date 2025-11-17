@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.exceptions.DeviceInUseException;
+import com.github.guilantorres.device.exceptions.DeviceNotFoundException;
 import com.github.guilantorres.device.model.Device;
 import com.github.guilantorres.device.model.DeviceState;
 import com.github.guilantorres.device.repository.DeviceMongoRepository;
@@ -31,21 +32,45 @@ public class DeviceServiceImplTests {
   private DeviceServiceImpl deviceService;
 
   @Test
-  public void deleteDeviceShouldThrowExceptionWithInUseStateDevice() {
+  public void getDeviceById_WhenDeviceExists_ShouldSucceed() {
     String deviceId = "abcdef";
-    Device deviceInUse = new Device(deviceId, "W580", "Sony Ericsson", DeviceState.IN_USE,
-        Instant.now());
-    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(deviceInUse));
+    Instant instant = Instant.now();
+    Device device = new Device(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.AVAILABLE,
+        instant
+    );
 
-    assertThrows(DeviceInUseException.class, () -> {
-      deviceService.deleteDevice(deviceId);
-    });
+    DeviceResponseDTO expectedResponse = new DeviceResponseDTO(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.AVAILABLE,
+        instant
+    );
 
-    verify(deviceMongoRepository, never()).deleteById(deviceId);
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(device));
+    DeviceResponseDTO actualResponse = deviceService.getDeviceById(deviceId);
+
+    assertThat(actualResponse)
+        .usingRecursiveComparison()
+        .isEqualTo(expectedResponse);
   }
 
   @Test
-  public void updateDeviceShouldProcessSuccessfully() {
+  public void getDeviceById_WhenDeviceNotFound_ShouldThrowException() {
+    String deviceId = "abcdef";
+
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.empty());
+    assertThrows(DeviceNotFoundException.class, () -> {
+      deviceService.getDeviceById(deviceId);
+    });
+  }
+
+  @Test
+  public void updateDevice_WhenDeviceAvailable_ShouldSucceed() {
     String deviceId = "abcdef";
     Instant instant = Instant.now();
     Device device = new Device(
@@ -80,7 +105,7 @@ public class DeviceServiceImplTests {
   }
 
   @Test
-  public void updateDeviceShouldThrowExceptionWithInUseStateDevice() {
+  public void updateDevice_WhenDeviceInUse_ShouldThrowException() {
     String deviceId = "abcdef";
     Device deviceInUse = new Device(deviceId, "W580", "Sony Ericsson", DeviceState.IN_USE,
         Instant.now());
@@ -93,5 +118,19 @@ public class DeviceServiceImplTests {
     });
 
     verify(deviceMongoRepository, never()).save(deviceInUse);
+  }
+
+  @Test
+  public void deleteDevice_WhenDeviceInUse_ShouldThrowException() {
+    String deviceId = "abcdef";
+    Device deviceInUse = new Device(deviceId, "W580", "Sony Ericsson", DeviceState.IN_USE,
+        Instant.now());
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(deviceInUse));
+
+    assertThrows(DeviceInUseException.class, () -> {
+      deviceService.deleteDevice(deviceId);
+    });
+
+    verify(deviceMongoRepository, never()).deleteById(deviceId);
   }
 }
