@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.exceptions.DeviceInUseException;
@@ -20,6 +21,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +34,30 @@ public class DeviceServiceImplTests {
   private DeviceMongoRepository deviceMongoRepository;
   @InjectMocks
   private DeviceServiceImpl deviceService;
+  @Captor
+  private ArgumentCaptor<Device> deviceArgumentCaptor;
+
+  @Test
+  public void createDevice_ShouldSetDefaultStateAndReturnDTO() {
+    CreateDeviceRequestDTO request = new CreateDeviceRequestDTO();
+    request.setName("W580");
+    request.setBrand("Sony Ericsson");
+
+    when(deviceMongoRepository.save(any(Device.class)))
+        .thenAnswer(AdditionalAnswers.returnsFirstArg());
+    DeviceResponseDTO response = deviceService.createDevice(request);
+    verify(deviceMongoRepository).save(deviceArgumentCaptor.capture());
+
+    Device savedDevice = deviceArgumentCaptor.getValue();
+
+    assertThat(savedDevice.getState()).isEqualTo(DeviceState.AVAILABLE);
+    assertThat(savedDevice.getName()).isEqualTo("W580");
+    assertThat(savedDevice.getBrand()).isEqualTo("Sony Ericsson");
+
+    assertThat(response.getState()).isEqualTo(DeviceState.AVAILABLE);
+    assertThat(response.getName()).isEqualTo("W580");
+    assertThat(response.getBrand()).isEqualTo("Sony Ericsson");
+  }
 
   @Test
   public void getDeviceById_WhenDeviceExists_ShouldSucceed() {
