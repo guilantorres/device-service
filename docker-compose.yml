@@ -2,6 +2,7 @@ services:
   mongo:
     image: mongo
     restart: always
+    container_name: device-service-mongo
     ports:
       - "27017:27017"
     environment:
@@ -10,6 +11,17 @@ services:
     volumes:
       - mongo-data:/data/db
 
+    # This container was included to serve as the MongoDB for the integration tests
+    # mongo-test:
+    # image: mongo
+    # restart: always
+    # container_name: device-service-mongo-test
+    # ports:
+    #   - "27018:27018"
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: testuser
+    #   MONGO_INITDB_ROOT_PASSWORD: testpassword
+  
   mongo-express:
     image: mongo-express
     restart: always
