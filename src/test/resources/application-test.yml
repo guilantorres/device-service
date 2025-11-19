@@ -1,0 +1,5 @@
+spring:
+  data:
+    mongodb:
+      uri:
+        mongodb://testuser:testpass@localhost:27018/device-test-db?authSource=admin
