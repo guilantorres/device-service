@@ -7,8 +7,9 @@ import com.github.guilantorres.device.model.DeviceState;
 import com.github.guilantorres.device.service.DeviceService;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,10 +54,11 @@ public class DeviceController {
   }
 
   @GetMapping
-  public ResponseEntity<List<DeviceResponseDTO>> getDevicesByBrandOrName(
+  public ResponseEntity<Page<DeviceResponseDTO>> getDevicesByBrandOrName(
       @RequestParam(required = false) String brand,
-      @RequestParam(required = false) DeviceState state) {
-    List<DeviceResponseDTO> devices = deviceService.getDevices(brand, state);
+      @RequestParam(required = false) DeviceState state,
+      Pageable pageable) {
+    Page<DeviceResponseDTO> devices = deviceService.getDevices(brand, state, pageable);
     return ResponseEntity.ok(devices);
   }
 

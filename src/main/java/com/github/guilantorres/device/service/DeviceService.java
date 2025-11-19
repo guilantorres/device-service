@@ -4,7 +4,8 @@ import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.model.DeviceState;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface DeviceService {
 
@@ -12,7 +13,7 @@ public interface DeviceService {
 
   DeviceResponseDTO getDeviceById(String id);
 
-  List<DeviceResponseDTO> getDevices(String brand, DeviceState state);
+  Page<DeviceResponseDTO> getDevices(String brand, DeviceState state, Pageable pageable);
 
   DeviceResponseDTO updateDevice(String id, UpdateDeviceRequestDTO request);
 

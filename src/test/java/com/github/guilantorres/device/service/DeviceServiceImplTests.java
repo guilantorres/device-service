@@ -1,6 +1,6 @@
 package com.github.guilantorres.device.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -17,6 +17,7 @@ import com.github.guilantorres.device.model.Device;
 import com.github.guilantorres.device.model.DeviceState;
 import com.github.guilantorres.device.repository.DeviceMongoRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,11 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class DeviceServiceImplTests {
@@ -36,6 +42,8 @@ public class DeviceServiceImplTests {
   private DeviceServiceImpl deviceService;
   @Captor
   private ArgumentCaptor<Device> deviceArgumentCaptor;
+  @Captor
+  private ArgumentCaptor<Example<Device>> exampleArgumentCaptor;
 
   @Test
   public void createDevice_ShouldSetDefaultStateAndReturnDTO() {
@@ -93,6 +101,40 @@ public class DeviceServiceImplTests {
     assertThrows(DeviceNotFoundException.class, () -> {
       deviceService.getDeviceById("deviceId");
     });
+  }
+
+  @Test
+  public void getDevices_ShouldBuildExampleAndReturnPageableSuccessfully() {
+    String brand = "Sony Ericsson";
+    Pageable pageRequest = PageRequest.of(0, 5);
+
+    List<Device> devices = List.of(
+        new Device("1", "W580", brand, DeviceState.AVAILABLE, Instant.now()),
+        new Device("2", "W581", brand, DeviceState.IN_USE, Instant.now()),
+        new Device("3", "W582", brand, DeviceState.INACTIVE, Instant.now()),
+        new Device("4", "W583", brand, DeviceState.IN_USE, Instant.now()),
+        new Device("5", "W584", brand, DeviceState.AVAILABLE, Instant.now())
+    );
+
+    Page<Device> devicePage = new PageImpl<>(
+        devices,
+        pageRequest,
+        devices.size()
+    );
+
+    when(deviceMongoRepository.findAll(any(Example.class), any(Pageable.class)))
+        .thenReturn(devicePage);
+
+    Page<DeviceResponseDTO> responsePage = deviceService.getDevices(brand, null, pageRequest);
+
+    assertThat(responsePage.getTotalElements()).isEqualTo(5);
+    assertThat(responsePage.getTotalPages()).isEqualTo(1);
+    assertThat(responsePage.getContent())
+        .extracting(DeviceResponseDTO::getBrand)
+        .containsOnly(brand);
+
+    verify(deviceMongoRepository).findAll(exampleArgumentCaptor.capture(), any(Pageable.class));
+    assertThat(exampleArgumentCaptor.getValue().getProbe().getBrand()).isEqualTo(brand);
   }
 
   @Test
