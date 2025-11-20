@@ -23,16 +23,14 @@ services:
     volumes:
       - mongo-data:/data/db
 
-    # This container was included to serve as the MongoDB for the integration tests
-    # mongo-test:
-    # image: mongo
-    # restart: always
-    # container_name: device-service-mongo-test
-    # ports:
-    #   - "27018:27018"
-    # environment:
-    #   MONGO_INITDB_ROOT_USERNAME: testuser
-    #   MONGO_INITDB_ROOT_PASSWORD: testpassword
+  mongo-test:
+    image: mongo
+    restart: always
+    container_name: device-service-mongo-test
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-test-data:/data/db
   
   mongo-express:
     image: mongo-express
@@ -49,4 +47,6 @@ services:
 
 volumes:
   mongo-data:
+    driver: local
+  mongo-test-data:
     driver: local
