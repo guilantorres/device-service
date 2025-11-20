@@ -2,6 +2,7 @@ package com.github.guilantorres.device.service;
 
 import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
+import com.github.guilantorres.device.dto.PatchDeviceRequestDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.model.DeviceState;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,8 @@ public interface DeviceService {
   Page<DeviceResponseDTO> getDevices(String brand, DeviceState state, Pageable pageable);
 
   DeviceResponseDTO updateDevice(String id, UpdateDeviceRequestDTO request);
+
+  DeviceResponseDTO patchDevice(String id, PatchDeviceRequestDTO request);
 
   void deleteDevice(String id);
 

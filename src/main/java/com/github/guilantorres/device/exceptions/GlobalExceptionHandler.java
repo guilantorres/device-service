@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,16 @@ public class GlobalExceptionHandler {
     problemDetail.setTitle("Invalid request content");
     problemDetail.setProperty("timestamp", Instant.now());
     problemDetail.setProperty("errors", errorList);
+    return problemDetail;
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  ProblemDetail handleInvalidJson(HttpMessageNotReadableException exception) {
+    ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST,
+        "Malformed JSON request. Check request syntax.");
+    problemDetail.setTitle("JSON parse error");
+    problemDetail.setProperty("timestamp", Instant.now());
     return problemDetail;
   }
 

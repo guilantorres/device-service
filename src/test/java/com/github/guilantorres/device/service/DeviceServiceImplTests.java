@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
+import com.github.guilantorres.device.dto.PatchDeviceRequestDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.exceptions.DeviceInUseException;
 import com.github.guilantorres.device.exceptions.DeviceNotFoundException;
@@ -190,9 +191,115 @@ public class DeviceServiceImplTests {
 
   @Test
   public void updateDevice_WhenDeviceNotFound_ShouldThrowException() {
-    when(deviceMongoRepository.findById("deviceId")).thenReturn(Optional.empty());
+    String deviceId = "abcdef";
+    UpdateDeviceRequestDTO request = new UpdateDeviceRequestDTO();
+    request.setName("W580");
+    request.setBrand("Sony Ericsson");
+    request.setState(DeviceState.AVAILABLE);
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.empty());
     assertThrows(DeviceNotFoundException.class, () -> {
-      deviceService.getDeviceById("deviceId");
+      deviceService.updateDevice(deviceId, request);
+    });
+  }
+
+  @Test
+  public void patchDevice_WhenDeviceAvailable_ShouldSucceed() {
+    String deviceId = "abcdef";
+    Instant instant = Instant.now();
+    Device device = new Device(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.AVAILABLE,
+        instant
+    );
+
+    PatchDeviceRequestDTO request = new PatchDeviceRequestDTO();
+    request.setName("W590");
+
+    DeviceResponseDTO expectedResponse = new DeviceResponseDTO(
+        deviceId,
+        "W590",
+        "Sony Ericsson",
+        DeviceState.AVAILABLE,
+        instant
+    );
+
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(device));
+    when(deviceMongoRepository.save(any(Device.class)))
+        .thenAnswer(AdditionalAnswers.returnsFirstArg());
+    DeviceResponseDTO actualResponse = deviceService.patchDevice(deviceId, request);
+
+    assertThat(actualResponse)
+        .usingRecursiveComparison()
+        .isEqualTo(expectedResponse);
+  }
+
+  @Test
+  public void patchDevice_WhenUpdatingStateOfInUseDevice_ShouldSucceed() {
+    String deviceId = "abcdef";
+    Instant instant = Instant.now();
+    Device device = new Device(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.IN_USE,
+        instant
+    );
+
+    PatchDeviceRequestDTO request = new PatchDeviceRequestDTO();
+    request.setState(DeviceState.INACTIVE);
+
+    DeviceResponseDTO expectedResponse = new DeviceResponseDTO(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.INACTIVE,
+        instant
+    );
+
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(device));
+    when(deviceMongoRepository.save(any(Device.class)))
+        .thenAnswer(AdditionalAnswers.returnsFirstArg());
+    DeviceResponseDTO actualResponse = deviceService.patchDevice(deviceId, request);
+
+    assertThat(actualResponse)
+        .usingRecursiveComparison()
+        .isEqualTo(expectedResponse);
+  }
+
+  @Test
+  public void patchDevice_WhenUpdatingNameOfInUseDevice_ShouldThrowException() {
+    String deviceId = "abcdef";
+    Instant instant = Instant.now();
+    Device device = new Device(
+        deviceId,
+        "W580",
+        "Sony Ericsson",
+        DeviceState.IN_USE,
+        instant
+    );
+
+    PatchDeviceRequestDTO request = new PatchDeviceRequestDTO();
+    request.setName("W590");
+
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.of(device));
+
+    assertThrows(DeviceInUseException.class, () -> {
+      deviceService.patchDevice(deviceId, request);
+    });
+
+    verify(deviceMongoRepository, never()).save(device);
+  }
+
+  @Test
+  public void patchDevice_WhenDeviceNotFound_ShouldThrowException() {
+    String deviceId = "abcdef";
+    PatchDeviceRequestDTO request = new PatchDeviceRequestDTO();
+    request.setState(DeviceState.IN_USE);
+    when(deviceMongoRepository.findById(deviceId)).thenReturn(Optional.empty());
+    assertThrows(DeviceNotFoundException.class, () -> {
+      deviceService.patchDevice(deviceId, request);
     });
   }
 
@@ -232,7 +339,7 @@ public class DeviceServiceImplTests {
   public void deleteDevice_WhenDeviceNotFound_ShouldThrowException() {
     when(deviceMongoRepository.findById("deviceId")).thenReturn(Optional.empty());
     assertThrows(DeviceNotFoundException.class, () -> {
-      deviceService.getDeviceById("deviceId");
+      deviceService.deleteDevice("deviceId");
     });
   }
 }

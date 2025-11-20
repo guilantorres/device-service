@@ -2,6 +2,7 @@ package com.github.guilantorres.device.service;
 
 import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
+import com.github.guilantorres.device.dto.PatchDeviceRequestDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.exceptions.DeviceInUseException;
 import com.github.guilantorres.device.exceptions.DeviceNotFoundException;
@@ -66,17 +67,35 @@ public class DeviceServiceImpl implements DeviceService {
       throw new DeviceNotFoundException((String.format("Device with id: %s not found", id)));
     }
     Device deviceToUpdate = device.get();
-    if (deviceToUpdate.getState().equals(DeviceState.IN_USE)) {
-      if (!deviceToUpdate.getName().equals(request.getName()) ||
-          !deviceToUpdate.getBrand().equals(request.getBrand())) {
-        throw new DeviceInUseException(String.format(
-            "Device %s is IN_USE. Name and Brand cannot be updated.",
-            deviceToUpdate.getId()));
-      }
-    }
+    validateUpdateState(request.getName(), request.getBrand(), deviceToUpdate);
     deviceToUpdate.setName(request.getName());
     deviceToUpdate.setBrand(request.getBrand());
     deviceToUpdate.setState(request.getState());
+    Device updatedDevice = deviceMongoRepository.save(deviceToUpdate);
+    return entityToDto(updatedDevice);
+  }
+
+  @Override
+  public DeviceResponseDTO patchDevice(String id, PatchDeviceRequestDTO request) {
+    Optional<Device> device = deviceMongoRepository.findById(id);
+    if (device.isEmpty()) {
+      throw new DeviceNotFoundException(String.format("Device with id: %s not found", id));
+    }
+    Device deviceToUpdate = device.get();
+
+    String newName = request.getName() != null ? request.getName() : deviceToUpdate.getName();
+    String newBrand = request.getBrand() != null ? request.getBrand() : deviceToUpdate.getBrand();
+    validateUpdateState(newName, newBrand, deviceToUpdate);
+
+    if (request.getName() != null) {
+      deviceToUpdate.setName(request.getName());
+    }
+    if (request.getBrand() != null) {
+      deviceToUpdate.setBrand(request.getBrand());
+    }
+    if (request.getState() != null) {
+      deviceToUpdate.setState(request.getState());
+    }
     Device updatedDevice = deviceMongoRepository.save(deviceToUpdate);
     return entityToDto(updatedDevice);
   }
@@ -109,5 +128,16 @@ public class DeviceServiceImpl implements DeviceService {
     return devices.stream()
         .map(this::entityToDto)
         .collect(Collectors.toList());
+  }
+
+  private void validateUpdateState(String name, String brand, Device deviceToUpdate) {
+    if (deviceToUpdate.getState().equals(DeviceState.IN_USE)) {
+      if (!deviceToUpdate.getName().equals(name) ||
+          !deviceToUpdate.getBrand().equals(brand)) {
+        throw new DeviceInUseException(
+            String.format("Device %s is IN_USE. Name and Brand cannot be updated.",
+                deviceToUpdate.getId()));
+      }
+    }
   }
 }
