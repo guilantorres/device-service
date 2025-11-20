@@ -65,12 +65,15 @@ public class DeviceServiceImpl implements DeviceService {
     if (device.isEmpty()) {
       throw new DeviceNotFoundException((String.format("Device with id: %s not found", id)));
     }
-    if (device.get().getState().equals(DeviceState.IN_USE)) {
-      throw new DeviceInUseException(
-          String.format("Update into device with id: %s is not allowed due to device state: %s", id,
-              DeviceState.IN_USE));
-    }
     Device deviceToUpdate = device.get();
+    if (deviceToUpdate.getState().equals(DeviceState.IN_USE)) {
+      if (!deviceToUpdate.getName().equals(request.getName()) ||
+          !deviceToUpdate.getBrand().equals(request.getBrand())) {
+        throw new DeviceInUseException(String.format(
+            "Device %s is IN_USE. Name and Brand cannot be updated.",
+            deviceToUpdate.getId()));
+      }
+    }
     deviceToUpdate.setName(request.getName());
     deviceToUpdate.setBrand(request.getBrand());
     deviceToUpdate.setState(request.getState());

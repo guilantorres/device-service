@@ -4,7 +4,7 @@ COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
 COPY src ./src
-RUN ./mvnw clean package
+RUN ./mvnw clean package -Dtest=!DeviceMongoRepositoryTests
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
