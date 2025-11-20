@@ -34,7 +34,7 @@ Docker Compose.
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/guilantorres/device-service.git
    cd device-service
    ```
 
@@ -45,8 +45,8 @@ Docker Compose.
 
 3. The API will be available at:
     * **Base URL:** `http://localhost:8080/devices`
-    * **Swagger UI (Docs):
-      ** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+    * **Swagger UI (Docs):**
+      [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ### Stopping the Application
 
