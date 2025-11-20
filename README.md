@@ -34,7 +34,7 @@ Docker Compose.
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/guilantorres/device-service.git
    cd device-service
    ```
 
