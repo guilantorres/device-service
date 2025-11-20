@@ -2,6 +2,7 @@ package com.github.guilantorres.device.controller;
 
 import com.github.guilantorres.device.dto.CreateDeviceRequestDTO;
 import com.github.guilantorres.device.dto.DeviceResponseDTO;
+import com.github.guilantorres.device.dto.PatchDeviceRequestDTO;
 import com.github.guilantorres.device.dto.UpdateDeviceRequestDTO;
 import com.github.guilantorres.device.model.DeviceState;
 import com.github.guilantorres.device.service.DeviceService;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -66,6 +68,15 @@ public class DeviceController {
   public ResponseEntity<DeviceResponseDTO> updateDevice(@PathVariable String id,
       @Valid @RequestBody UpdateDeviceRequestDTO request) {
     DeviceResponseDTO response = deviceService.updateDevice(id, request);
+    return ResponseEntity.ok(response);
+  }
+
+  @PatchMapping("/{id}")
+  public ResponseEntity<DeviceResponseDTO> patchDevice(
+      @PathVariable String id,
+      @RequestBody PatchDeviceRequestDTO request
+  ) {
+    DeviceResponseDTO response = deviceService.patchDevice(id, request);
     return ResponseEntity.ok(response);
   }
 
