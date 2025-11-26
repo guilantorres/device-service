@@ -18,7 +18,7 @@ public class OpenApiConfig {
             .description("API for creating, retrieving, updating, and deleting device resources.")
             .contact(new Contact()
                 .name("Guilherme Torres")
-                .url("https://github.com/guilantorres") // Seu GitHub
+                .url("https://github.com/guilantorres")
             )
         );
   }
